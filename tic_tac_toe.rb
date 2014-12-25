@@ -92,44 +92,57 @@ class TicTacToe
 end
 
 class TicTacToeController
-require 'io/console'
 
-def display
-  puts "     |     |     "
-  puts "     |     |     "
-  puts "_____|_____|_____"
-  puts "     |     |     "
-  puts "     |     |     "
-  puts "_____|_____|_____"
-  puts "     |     |     "
-  puts "     |     |     "
-  puts "     |     |     "
-end
+  def display
+    puts "     |     |     "
+    puts "     |     |     "
+    puts "_____|_____|_____"
+    puts "     |     |     "
+    puts "     |     |     "
+    puts "_____|_____|_____"
+    puts "     |     |     "
+    puts "     |     |     "
+    puts "     |     |     "
+  end
   # puts "     |     |     "
-
   
 end
 
-class InputController
+class InputProcesser
+  require 'io/console'
 
-def run
-  STDIN.echo = false
-  STDIN.raw!
-  while true
-    action = STDIN.getch
-    break if action == "c"
-    
-    if action == "\e"
-      action << STDIN.read_nonblock(3) rescue nil
-      action << STDIN.read_nonblock(2) rescue nil
+  def initialize(controller)
+    @controller = controller
+    @commands = {
+      "\e[A" => :cmd_up,
+      "\e[B" => :cmd_down,
+      "\e[D" => :cmd_left,
+      "\e[C" => :cmd_right,
+      "c" => :cmd_quit,
+      "n" => :cmd_new_game,
+      "\r" => :cmd_enter
+    }
+  end
 
+  def run
+    STDIN.echo = false
+    STDIN.raw!
+    while true
+      action = STDIN.getch
+      break if action == "c"
+      
+      if action == "\e"
+        action << STDIN.read_nonblock(3) rescue nil
+        action << STDIN.read_nonblock(2) rescue nil
+
+      end
+      puts "UP" if action == "\e[A"
+      puts "DOWN" if action == "\e[B"
+      puts "LEFT" if action == "\e[D"
+      puts "RIGHT" if action == "\e[C"
+      print "\r"
+      action = ""
     end
-    puts "UP" if action == "\e[A"
-    puts "DOWN" if action == "\e[B"
-    puts "LEFT" if action == "\e[D"
-    puts "RIGHT" if action == "\e[C"
-    print "\r"
-    action = ""
   end
 end
 # STDIN.echo = false
