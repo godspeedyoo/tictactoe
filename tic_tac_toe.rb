@@ -1,6 +1,6 @@
 
 
-class TicTacToe
+class TicTacToeGame
 
   attr_reader :dimension, :units
 
@@ -10,6 +10,8 @@ class TicTacToe
     @board = Array.new(units) { Array.new }
     @player_x = Array.new(units) { Array.new }
     @player_o = Array.new(units) { Array.new }
+    @cursor_index = 0
+    @turn = 1
   end
 
   def game_end?
@@ -41,9 +43,36 @@ class TicTacToe
     left_right_diagonal(player_board).all? { |marker| !marker.empty? } 
   end
 
+  def cmd_up
+    @cursor_index -= dimension if (@cursor_index - dimension) >= 0
+  end
+
+  def cmd_down
+    @cursor_index += dimension if (@cursor_index + dimension) <= units
+  end
+
+  def cmd_left
+    @cursor_index -= 1 if (@cursor_index - 1) >= 0 && (@cursor_index % dimension) != 0
+  end
+
+  def cmd_right
+    @cursor_index += 1 if (@cursor_index + 1) <= units && (@cursor_index % dimension) < (dimension -1)
+  end
+
+  def cmd_enter
+    place_marker(@cursor_index)
+  end
 
   private
+
+  def place_marker(index)
+    @player_x[index] << "x" if @turn.odd?
+    @player_o[index] << "o" if @turn.even?
+    @turn +=  1
+  end
+
   # utility methods for conversion
+
 
   def row_to_range(row)
     # algorithm practice for fun
@@ -92,6 +121,20 @@ class TicTacToe
 end
 
 class TicTacToeController
+  attr_reader :game
+
+  def initialize(game)
+    @game = game
+  end
+
+  def process(cmd)
+    return if cmd == nil
+    game.send(cmd)
+  end
+
+end
+
+class TicTacToeScreen
 
   def display
     puts "     |     |     "
@@ -105,7 +148,6 @@ class TicTacToeController
     puts "     |     |     "
   end
   # puts "     |     |     "
-  
 end
 
 class InputProcesser
@@ -136,6 +178,9 @@ class InputProcesser
         action << STDIN.read_nonblock(2) rescue nil
 
       end
+      
+      @controller.process(action)
+
       puts "UP" if action == "\e[A"
       puts "DOWN" if action == "\e[B"
       puts "LEFT" if action == "\e[D"
