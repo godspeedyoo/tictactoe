@@ -136,31 +136,72 @@ class TicTacToeGame
 end
 
 class TicTacToeController
-  attr_reader :game, :cursor_index
+  attr_reader :game, :cursor_index, :current_board
 
   def initialize(game)
     @game = game
+    @current_board = []
+    @screen = TicTacToeScreen.new(@current_board)
   end
 
   def process(cmd)
     return if cmd == nil
     game.send(cmd)
-    @cursor_index = game.cursor_index
+    query_cursor!
+    query_board!
+    @screen.update(@current_board)
+    @screen.prepare_board_to_display
+    @screen.display_new_board
   end
 
+  def query_board!
+    @current_board = game.map_board!
+  end
+
+  def query_cursor!
+    @cursor_index = game.cursor_index
+  end
 end
 
 class TicTacToeScreen
+  attr_accessor :current_board
 
-  def display
+  def initialize(board)
+    @current_board = board
+  end
+
+  def update(new_board)
+    @current_board = new_board
+  end
+
+  def prepare_board_to_display
+    @current_board.map! do |el|
+      if el.empty?
+        " "
+      else
+        el[0]
+      end
+    end
+  end
+
+  def display_new_board
+    system "clear"
     puts "     |     |     "
-    puts "     |     |     "
+    print "\r"
+    puts "  #{@current_board[0]}  |  #{@current_board[1]}  |  #{@current_board[2]}  "
+    print "\r"
     puts "_____|_____|_____"
+    print "\r"
     puts "     |     |     "
-    puts "     |     |     "
+    print "\r"
+    puts "  #{@current_board[3]}  |  #{@current_board[4]}  |  #{@current_board[5]}  "
+    print "\r"
     puts "_____|_____|_____"
+    print "\r"
     puts "     |     |     "
-    puts "     |     |     "
+    print "\r"
+    puts "  #{@current_board[6]}  |  #{@current_board[7]}  |  #{@current_board[8]}  "
+    print "\r"
     puts "     |     |     "
   end
   # puts "     |     |     "
@@ -194,15 +235,16 @@ class InputProcesser
         action << STDIN.read_nonblock(2) rescue nil
 
       end
-      
-      @controller.process(@commands[action])
-      puts @controller.cursor_index
-
-      puts "UP" if action == "\e[A"
-      puts "DOWN" if action == "\e[B"
-      puts "LEFT" if action == "\e[D"
-      puts "RIGHT" if action == "\e[C"
       print "\r"
+      @controller.process(@commands[action])
+      print "\r"
+      # @controller.cursor_index
+
+      # puts "UP" if action == "\e[A"
+      # puts "DOWN" if action == "\e[B"
+      # puts "LEFT" if action == "\e[D"
+      # puts "RIGHT" if action == "\e[C"
+      # print "\r"
       action = ""
     end
   end
@@ -211,7 +253,7 @@ end
 game = TicTacToeGame.new(3)
 controller = TicTacToeController.new(game)
 runner = InputProcesser.new(controller)
-
+system "clear"
 runner.run
 begin
 ensure
