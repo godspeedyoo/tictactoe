@@ -81,10 +81,15 @@ class TicTacToeGame
   private
 
   def place_marker(index)
-    @player_x[index] << "x" if @turn.odd?
-    @player_o[index] << "o" if @turn.even?
-    @turn +=  1
+    if @turn.odd? && @player_x[index].empty? && @player_o[index].empty?
+      @player_x[index] << "x" 
+      @turn += 1
+    elsif @turn.even? && @player_o[index].empty? && @player_x[index].empty?
+      @player_o[index] << "o" if 
+      @turn +=  1
+    end
   end
+
 
   # utility methods for conversion
 
@@ -141,19 +146,24 @@ class TicTacToeController
   def initialize(game)
     @game = game
     @current_board = []
-    @screen = TicTacToeScreen.new(@current_board)
+    @screen = TicTacToeScreen.new
   end
 
   def process(cmd)
     return if cmd == nil
     game.send(cmd)
+    process_display
+  end
+
+  def process_display
     query_cursor!
     query_board!
-    @screen.update(@current_board)
+    @screen.update_cursor(cursor_index)
+    @screen.update(current_board)
     @screen.prepare_board_to_display
     @screen.display_new_board
   end
-
+  
   def query_board!
     @current_board = game.map_board!
   end
@@ -165,13 +175,18 @@ end
 
 class TicTacToeScreen
   attr_accessor :current_board
+  attr_reader :cursor_index
 
-  def initialize(board)
-    @current_board = board
+  def initialize
+    # @controller = controller
   end
 
   def update(new_board)
     @current_board = new_board
+  end
+
+  def update_cursor(cursor_index)
+    @cursor_index = cursor_index
   end
 
   def prepare_board_to_display
@@ -188,24 +203,38 @@ class TicTacToeScreen
     system "clear"
     puts "     |     |     "
     print "\r"
-    puts "  #{@current_board[0]}  |  #{@current_board[1]}  |  #{@current_board[2]}  "
+    puts "#{blinking_cursor(0)} #{@current_board[0]}  |#{blinking_cursor(1)} #{@current_board[1]}  |#{blinking_cursor(2)} #{@current_board[2]}  "
     print "\r"
     puts "_____|_____|_____"
     print "\r"
     puts "     |     |     "
     print "\r"
-    puts "  #{@current_board[3]}  |  #{@current_board[4]}  |  #{@current_board[5]}  "
+    puts "#{blinking_cursor(3)} #{@current_board[3]}  |#{blinking_cursor(4)} #{@current_board[4]}  |#{blinking_cursor(5)} #{@current_board[5]}  "
     print "\r"
     puts "_____|_____|_____"
     print "\r"
     puts "     |     |     "
     print "\r"
-    puts "  #{@current_board[6]}  |  #{@current_board[7]}  |  #{@current_board[8]}  "
+    puts "#{blinking_cursor(6)} #{@current_board[6]}  |#{blinking_cursor(7)} #{@current_board[7]}  |#{blinking_cursor(8)} #{@current_board[8]}  "
     print "\r"
     puts "     |     |     "
+    print "\r"
+    puts "#{cursor_index}"
   end
 
-
+  def blinking_cursor(index)
+    # while index == cursor_index 
+    #   print "\b>"
+    #   sleep 0.5
+    #   print "\b "
+    #   sleep 0.5
+    # end 
+    if index == cursor_index
+      return ">"
+    else
+      return " "
+    end
+  end
   # puts "     |     |     "
 end
 
@@ -226,6 +255,8 @@ class InputProcesser
   end
 
   def run
+    @controller.process_display
+
     STDIN.echo = false
     STDIN.raw!
     while true
