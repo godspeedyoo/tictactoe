@@ -204,6 +204,8 @@ class TicTacToeScreen
     print "\r"
     puts "     |     |     "
   end
+
+
   # puts "     |     |     "
 end
 
