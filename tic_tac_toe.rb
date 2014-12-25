@@ -14,6 +14,19 @@ class TicTacToeGame
     @turn = 1
   end
 
+  def map_board!
+    @board.map!.with_index do |el, i| 
+      if @player_x[i] == ["x"]
+        @player_x[i]
+      elsif @player_o[i] == ["o"]
+        @player_o[i]
+      else
+        el
+      end
+    end
+    @board
+  end
+
   def game_end?
     return true if has_line?(@player_x) || has_line?(@player_o)
     false
