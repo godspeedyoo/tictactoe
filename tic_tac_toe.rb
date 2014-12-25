@@ -2,7 +2,7 @@
 
 class TicTacToeGame
 
-  attr_reader :dimension, :units
+  attr_reader :dimension, :units, :cursor_index
 
   def initialize(dimension)
     @dimension = dimension
@@ -48,15 +48,17 @@ class TicTacToeGame
   end
 
   def cmd_down
-    @cursor_index += dimension if (@cursor_index + dimension) <= units
+    @cursor_index += dimension if (@cursor_index + dimension) < units
   end
 
   def cmd_left
-    @cursor_index -= 1 if (@cursor_index - 1) >= 0 && (@cursor_index % dimension) != 0
+    @cursor_index -= 1 if (@cursor_index - 1) >= 0 && 
+      (@cursor_index % dimension) > 0
   end
 
   def cmd_right
-    @cursor_index += 1 if (@cursor_index + 1) <= units && (@cursor_index % dimension) < (dimension -1)
+    @cursor_index += 1 if (@cursor_index + 1) < units && 
+      (@cursor_index % dimension) < (dimension - 1)
   end
 
   def cmd_enter
@@ -121,7 +123,7 @@ class TicTacToeGame
 end
 
 class TicTacToeController
-  attr_reader :game
+  attr_reader :game, :cursor_index
 
   def initialize(game)
     @game = game
@@ -130,6 +132,7 @@ class TicTacToeController
   def process(cmd)
     return if cmd == nil
     game.send(cmd)
+    @cursor_index = game.cursor_index
   end
 
 end
@@ -179,7 +182,8 @@ class InputProcesser
 
       end
       
-      @controller.process(action)
+      @controller.process(@commands[action])
+      puts @controller.cursor_index
 
       puts "UP" if action == "\e[A"
       puts "DOWN" if action == "\e[B"
@@ -191,9 +195,16 @@ class InputProcesser
   end
 end
 # STDIN.echo = false
-run
+game = TicTacToeGame.new(3)
+controller = TicTacToeController.new(game)
+runner = InputProcesser.new(controller)
+
+runner.run
+begin
+ensure
 
 STDIN.echo = true
 STDIN.cooked!
 
+end
 
